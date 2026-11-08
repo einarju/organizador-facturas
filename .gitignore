@@ -1,0 +1,9 @@
+# Real family documents NEVER go to GitHub
+test-docs/
+*.pdf
+*.xml
+*.xlsx
+*.xls
+*.csv
+*.zip
+.DS_Store
