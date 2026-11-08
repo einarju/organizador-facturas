@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Organizador de Facturas</title>
+  <meta name="description" content="Convierte el estado de cuenta en Excel y organiza las facturas en carpetas. Todo se procesa en tu computadora.">
+  <link rel="stylesheet" href="css/styles.css">
+  <!-- Libraries (pinned versions, loaded only from CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="top">
+    <div class="wrap">
+      <h1>Organizador de Facturas</h1>
+      <p class="lead">Estado de cuenta a Excel, facturas a sus carpetas, todo en un ZIP.</p>
+      <p class="privacy">🔒 Tus archivos no se suben a internet. Todo se procesa aquí, en tu computadora.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- STEP 1: work folder on the PC -->
+    <section class="card" id="step-folder">
+      <div class="step-head"><span class="num">1</span><h2>Carpeta de trabajo</h2></div>
+      <p>Elige una carpeta en tu computadora. Ahí se creará una carpeta nueva para este proceso con todo adentro.</p>
+      <div class="row">
+        <label class="field">
+          <span>Nombre del proceso</span>
+          <input id="job-name" type="text" autocomplete="off">
+        </label>
+        <button id="btn-pick" class="btn primary">Elegir carpeta</button>
+      </div>
+      <p id="folder-status" class="status muted">Ninguna carpeta elegida todavía.</p>
+      <p id="fallback-note" class="status warn" hidden>
+        Este navegador no puede guardar directo en una carpeta. Usa <b>Chrome</b> o <b>Edge</b> para eso.
+        Mientras tanto, los archivos se guardan aquí y al final se descargan en un ZIP.
+      </p>
+    </section>
+
+    <!-- STEP 2: estado de cuenta -->
+    <section class="card" id="step-estado">
+      <div class="step-head"><span class="num">2</span><h2>Estado de cuenta</h2></div>
+      <div class="drop" data-slot="estado" tabindex="0" role="button" aria-label="Subir estado de cuenta">
+        <p class="drop-title">Arrastra aquí el estado de cuenta</p>
+        <p class="muted">o haz clic para buscarlo (PDF, Excel o CSV)</p>
+        <input type="file" accept=".pdf,.xlsx,.xls,.csv" hidden>
+      </div>
+      <ul class="files" data-list="estado"></ul>
+    </section>
+
+    <!-- STEP 3: Excel table (pipeline, next phase) -->
+    <section class="card" id="step-tabla">
+      <div class="step-head"><span class="num">3</span><h2>Tabla en Excel y carpetas</h2></div>
+      <p class="muted">Aquí se mostrarán los movimientos ya formateados, el Excel y el archivo .bat que crea las carpetas.</p>
+      <div id="tabla-preview" class="placeholder">Próximamente</div>
+    </section>
+
+    <!-- STEP 4: facturas -->
+    <section class="card" id="step-facturas">
+      <div class="step-head"><span class="num">4</span><h2>Facturas</h2></div>
+      <div class="drop" data-slot="facturas" tabindex="0" role="button" aria-label="Subir facturas">
+        <p class="drop-title">Arrastra aquí las facturas</p>
+        <p class="muted">puedes soltar varias a la vez (PDF y XML)</p>
+        <input type="file" accept=".pdf,.xml" multiple hidden>
+      </div>
+      <ul class="files" data-list="facturas"></ul>
+    </section>
+
+    <!-- STEP 5: ZIP -->
+    <section class="card" id="step-zip">
+      <div class="step-head"><span class="num">5</span><h2>Descargar todo</h2></div>
+      <p class="muted">Junta todo el proceso en un solo ZIP.</p>
+      <button id="btn-zip" class="btn primary" disabled>Descargar ZIP</button>
+    </section>
+  </main>
+
+  <footer class="wrap foot muted">Hecho para la familia · v0.1</footer>
+  <div id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>
