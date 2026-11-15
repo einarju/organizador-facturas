@@ -1,10 +1,15 @@
 // Reads facturas (CFDI PDF or XML) and BancaNet transfer receipts,
 // then suggests which movement folder each one belongs to.
 
-import { readPdfLines } from "./pdftext.js";
+import { readPdfLines, ocrPdf } from "./pdftext.js";
 import { clean } from "./estado.js";
 
 const money = (s) => Number(String(s).replace(/[$,\s]/g, ""));
+// OCR may read "13,366.78" as "13,366,78" or "13.366.78": the last 2 digits are always cents.
+const looseMoney = (s) => {
+  const m = String(s || "").replace(/\s/g, "").match(/^([\d.,]*\d)[.,](\d{2})$/);
+  return m ? Number(m[1].replace(/[.,]/g, "") + "." + m[2]) : NaN;
+};
 const near = (a, b) => Math.abs(a - b) < 0.005;
 const FORMAS = { "01": "Efectivo", "02": "Cheque nominativo", "03": "Transferencia", "04": "Tarjeta de crédito", "28": "Tarjeta de débito", "99": "Por definir" };
 
@@ -12,7 +17,12 @@ export async function readDocument(file) {
   const base = { archivo: file.name, file };
   try {
     if (/\.xml$/i.test(file.name)) return { ...base, ...parseXml(await file.text()) };
-    if (/\.pdf$/i.test(file.name)) return { ...base, ...parsePdfText((await readPdfLines(file)).flat().join("\n")) };
+    if (/\.pdf$/i.test(file.name)) {
+      let text = (await readPdfLines(file)).flat().join("\n");
+      let ocr = false;
+      if (text.replace(/\s/g, "").length < 40) { text = await ocrPdf(file); ocr = true; }
+      return { ...base, ...parsePdfText(text), ocr };
+    }
   } catch (err) {
     console.error(err);
   }
@@ -23,10 +33,10 @@ export function parsePdfText(t) {
   if (/BancaNet|transferencia ha sido Aceptada/i.test(t)) {
     return {
       tipo: "comprobante",
-      importe: money((t.match(/Importe MXN\s*\$?\s*([\d,]+\.\d{2})/) || [])[1] || NaN),
-      aut: (t.match(/autorizaci[oó]n\s+(\d+)/i) || [])[1] || "",
-      fecha: dmyToIso((t.match(/Fecha valor\s+(\d{2}\/\d{2}\/\d{4})/) || [])[1]),
-      emisor: cutLabel((t.match(/Nombre:\s*(.+?)\s*\(Dato/) || [])[1] || ""),
+      importe: looseMoney((t.match(/Importe\s+MXN\s*\$?\s*([\d.,\s]+\d)/i) || [])[1]),
+      aut: (t.match(/autorizaci.n\s*:?\s*(\d{4,})/i) || [])[1] || "",
+      fecha: dmyToIso((t.match(/Fecha valor\s+(\d{2}\/\d{2}\/\d{4})/i) || [])[1]),
+      emisor: cutLabel((t.match(/Nombre:\s*(.+?)\s*\(Dato/i) || [])[1] || ""),
     };
   }
   if (/Folio fiscal|CFDI/i.test(t)) {

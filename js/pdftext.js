@@ -33,3 +33,54 @@ export async function readPdfLines(file) {
   }
   return pages;
 }
+
+// ---------- OCR fallback for PDFs whose text is drawn as shapes ----------
+// (e.g. the BancaNet transfer receipts). Tesseract.js runs in the browser;
+// it is loaded only when needed and the document never leaves the PC.
+
+const TESS = "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/tesseract.min.js";
+let tessLoading = null;
+
+function loadTesseract() {
+  if (window.Tesseract) return Promise.resolve();
+  tessLoading ||= new Promise((ok, fail) => {
+    const s = document.createElement("script");
+    s.src = TESS;
+    s.onload = ok;
+    s.onerror = () => fail(new Error("No se pudo cargar el lector de texto (OCR)."));
+    document.head.appendChild(s);
+  });
+  return tessLoading;
+}
+
+/** Renders the first pages to images and reads them with OCR. */
+export async function ocrPdf(file, maxPages = 2) {
+  await loadTesseract();
+  const lib = window.pdfjsLib;
+  lib.GlobalWorkerOptions.workerSrc = WORKER;
+  const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+  const worker = await window.Tesseract.createWorker("spa", 1, {
+    workerPath: "https://cdn.jsdelivr.net/npm/tesseract.js@5.1.1/dist/worker.min.js",
+    corePath: "https://cdn.jsdelivr.net/npm/tesseract.js-core@5.1.1",
+    langPath: "https://cdn.jsdelivr.net/npm/@tesseract.js-data/spa/4.0.0_best_int",
+  });
+  try {
+    let text = "";
+    for (let p = 1; p <= Math.min(pdf.numPages, maxPages); p++) {
+      const page = await pdf.getPage(p);
+      const viewport = page.getViewport({ scale: 2.5 });
+      const canvas = document.createElement("canvas");
+      canvas.width = viewport.width;
+      canvas.height = viewport.height;
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = "#fff";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      await page.render({ canvasContext: ctx, viewport }).promise;
+      const { data } = await worker.recognize(canvas);
+      text += data.text + "\n";
+    }
+    return text;
+  } finally {
+    await worker.terminate();
+  }
+}

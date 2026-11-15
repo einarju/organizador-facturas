@@ -1,6 +1,6 @@
 import { Workspace, canUseFolders, ESTADO_DIR, SIN_MOV_DIR, safeName } from "./workspace.js";
 import { readPdfLines } from "./pdftext.js";
-import { parseBanamex, folderNames, cleanNameInput, fmtImporte } from "./estado.js";
+import { parseBanamex, folderNames, cleanNameInput } from "./estado.js";
 import { readDocument, matchDocument } from "./facturas.js";
 import { buildExcel, buildBat } from "./pipeline.js";
 
@@ -227,8 +227,9 @@ async function onFacturas(files) {
     return;
   }
   $("#docs-wrap").hidden = false;
-  setStatus($("#docs-status"), "Leyendo documentos…", "muted");
+  let n = 0;
   for (const file of files) {
+    setStatus($("#docs-status"), `Leyendo ${++n} de ${files.length}… (los PDF escaneados tardan unos segundos)`, "muted");
     const doc = await readDocument(file);
     if (doc.uuid && state.uuids.has(doc.uuid)) {
       doc.duplicada = true;
@@ -278,7 +279,7 @@ function renderDocs() {
 function describe(d) {
   if (saved(d)) return `✓ Guardado en ${d.dest}`;
   if (d.duplicada) return "Duplicada: esta factura ya está en la lista";
-  if (d.tipo === "comprobante") return `Comprobante de transferencia · ${d.emisor || "?"} · ${num(d.importe)} · aut. ${d.aut || "?"}`;
+  if (d.tipo === "comprobante") return `Comprobante de transferencia · ${d.emisor || "?"} · ${num(d.importe)} · aut. ${d.aut || "?"}${d.ocr ? " · leído como imagen, revisa la carpeta" : ""}`;
   if (d.tipo === "factura") return `Factura · ${d.emisor || "?"} · ${num(d.importe)} · ${d.fecha || ""}${d.formaPago ? " · " + d.formaPago : ""}`;
   return "No se reconoció el documento: elige la carpeta a mano";
 }
@@ -366,4 +367,3 @@ function toast(msg) {
 
 // exposed for testing in the browser console
 window.__organizador = { state, ws };
-export { fmtImporte };
