@@ -10,7 +10,6 @@ const fmtMoney = (n) => "$" + n.toLocaleString("es-MX", { minimumFractionDigits:
 
 const state = {
   estado: null,     // parseBanamex result
-  ccMode: "contrato",
   created: false,   // folders + Excel + .bat written
   names: [],        // folder name per movement (fixed once created)
   pending: [],      // documents waiting to be saved
@@ -101,10 +100,10 @@ async function onEstado(file) {
 }
 
 // ---------- Step 3: table ----------
+// Decided by the family (2026-11-15): always the last 2 digits of the
+// account number (contrato), never the CLABE.
 function cc() {
-  const i = state.estado.info;
-  const src = state.ccMode === "clabe" ? i.clabe : i.contrato;
-  return (src || "00").slice(-2);
+  return (state.estado.info.contrato || "00").slice(-2);
 }
 
 function renderTable() {
@@ -112,8 +111,9 @@ function renderTable() {
   $("#tabla-empty").hidden = true;
   $("#tabla-wrap").hidden = false;
 
-  $("#cc-contrato").textContent = `Contrato …${(info.contrato || "??").slice(-4)} → ${(info.contrato || "00").slice(-2)}`;
-  $("#cc-clabe").textContent = `CLABE …${(info.clabe || "??").slice(-4)} → ${(info.clabe || "00").slice(-2)}`;
+  $("#cc-info").textContent = info.contrato
+    ? `Cuenta …${info.contrato.slice(-4)} → ${cc()}`
+    : "⚠ No encontré el número de cuenta, se usará 00";
 
   const ul = $("#checks");
   ul.innerHTML = "";
@@ -166,10 +166,6 @@ function refreshNames() {
   [...$("#movs-body").rows].forEach((tr, i) => (tr.querySelector(".folder").textContent = names[i]));
   return names;
 }
-
-document.querySelectorAll('input[name="cc"]').forEach((r) =>
-  r.addEventListener("change", () => { state.ccMode = r.value; if (state.estado) refreshNames(); })
-);
 
 $("#btn-crear").addEventListener("click", async () => {
   const btn = $("#btn-crear");

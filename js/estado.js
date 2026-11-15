@@ -3,7 +3,7 @@
 // Folder name rule (from "Archivo concatenado Ejemplo.xlsx"):
 //   MMDD_CC_TTAAAA_NOMBRE_$IMPORTE
 //   MMDD   date without year
-//   CC     last 2 digits of the QBE account (contract or CLABE, selectable)
+//   CC     last 2 digits of the QBE account number (contrato, never the CLABE)
 //   TT     DC = deposit received, TR = transfer, CH = cheque
 //   AAAA   last 4 digits of the movement's AUT number
 //   IMPORTE no thousands commas, only the decimal point
