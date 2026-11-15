@@ -7,6 +7,8 @@
   <meta name="description" content="Convierte el estado de cuenta en Excel y organiza las facturas en carpetas. Todo se procesa en tu computadora.">
   <link rel="stylesheet" href="css/styles.css">
   <!-- Libraries (pinned versions, loaded only from CDN) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js" defer></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/exceljs/4.4.0/exceljs.min.js" defer></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js" defer></script>
   <script type="module" src="js/app.js"></script>
 </head>
@@ -42,29 +44,54 @@
     <section class="card" id="step-estado">
       <div class="step-head"><span class="num">2</span><h2>Estado de cuenta</h2></div>
       <div class="drop" data-slot="estado" tabindex="0" role="button" aria-label="Subir estado de cuenta">
-        <p class="drop-title">Arrastra aquí el estado de cuenta</p>
-        <p class="muted">o haz clic para buscarlo (PDF, Excel o CSV)</p>
-        <input type="file" accept=".pdf,.xlsx,.xls,.csv" hidden>
+        <p class="drop-title">Arrastra aquí el estado de cuenta de Banamex</p>
+        <p class="muted">o haz clic para buscarlo (PDF)</p>
+        <input type="file" accept=".pdf" hidden>
       </div>
       <ul class="files" data-list="estado"></ul>
     </section>
 
-    <!-- STEP 3: Excel table (pipeline, next phase) -->
+    <!-- STEP 3: review movements, then create Excel + .bat + folders -->
     <section class="card" id="step-tabla">
-      <div class="step-head"><span class="num">3</span><h2>Tabla en Excel y carpetas</h2></div>
-      <p class="muted">Aquí se mostrarán los movimientos ya formateados, el Excel y el archivo .bat que crea las carpetas.</p>
-      <div id="tabla-preview" class="placeholder">Próximamente</div>
+      <div class="step-head"><span class="num">3</span><h2>Revisar movimientos y crear carpetas</h2></div>
+      <p id="tabla-empty" class="placeholder">Primero sube el estado de cuenta.</p>
+      <div id="tabla-wrap" hidden>
+        <ul id="checks" class="checks"></ul>
+        <div class="cc-row">
+          <span class="cc-label">Dígitos de la cuenta en el nombre:</span>
+          <label class="pill"><input type="radio" name="cc" value="contrato" checked> <span id="cc-contrato"></span></label>
+          <label class="pill"><input type="radio" name="cc" value="clabe"> <span id="cc-clabe"></span></label>
+        </div>
+        <p class="muted small">Puedes cambiar el tipo y el nombre corto antes de crear las carpetas.</p>
+        <div class="table-scroll">
+          <table class="movs">
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Nombre corto</th><th class="num">Importe</th><th>Carpeta</th></tr></thead>
+            <tbody id="movs-body"></tbody>
+          </table>
+        </div>
+        <div class="row actions">
+          <button id="btn-crear" class="btn primary">Crear Excel, .bat y carpetas</button>
+        </div>
+        <p id="crear-status" class="status"></p>
+      </div>
     </section>
 
     <!-- STEP 4: facturas -->
     <section class="card" id="step-facturas">
-      <div class="step-head"><span class="num">4</span><h2>Facturas</h2></div>
+      <div class="step-head"><span class="num">4</span><h2>Facturas y comprobantes</h2></div>
       <div class="drop" data-slot="facturas" tabindex="0" role="button" aria-label="Subir facturas">
-        <p class="drop-title">Arrastra aquí las facturas</p>
-        <p class="muted">puedes soltar varias a la vez (PDF y XML)</p>
+        <p class="drop-title">Arrastra aquí las facturas y comprobantes</p>
+        <p class="muted">puedes soltar varios a la vez (PDF o XML)</p>
         <input type="file" accept=".pdf,.xml" multiple hidden>
       </div>
-      <ul class="files" data-list="facturas"></ul>
+      <div id="docs-wrap" hidden>
+        <p class="muted small">Revisa a qué carpeta va cada uno. Las que no coinciden con ningún movimiento van a <b>SIN MOVIMIENTO</b> y a su propia hoja del Excel.</p>
+        <ul id="docs-list" class="docs"></ul>
+        <div class="row actions">
+          <button id="btn-guardar" class="btn primary">Guardar en sus carpetas</button>
+        </div>
+        <p id="docs-status" class="status"></p>
+      </div>
     </section>
 
     <!-- STEP 5: ZIP -->
@@ -75,7 +102,7 @@
     </section>
   </main>
 
-  <footer class="wrap foot muted">Hecho para la familia · v0.1</footer>
+  <footer class="wrap foot muted">Hecho para la familia · v0.2</footer>
   <div id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
