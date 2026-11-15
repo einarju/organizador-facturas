@@ -34,13 +34,15 @@ export function parseBanamex(pages) {
   const skipped = [];
   let prevSaldo = null;
 
+  // A movement can start at the bottom of one page and end on the next,
+  // so `cur` survives page breaks; only the detail table switch resets per page.
+  let cur = null;
   for (const lines of pages) {
     let inDetail = false;
-    let cur = null;
     for (const text of lines) {
       if (/^FECHA\s+CONCEPTO\s+RETIROS/.test(text)) { inDetail = true; continue; }
       if (!inDetail) continue;
-      if (/SALDO MINIMO REQUERIDO|COMISIONES COBRADAS|^\d{6}\.[A-Z0-9]+\.OD\./.test(text)) { inDetail = false; cur = null; continue; }
+      if (/SALDO MINIMO REQUERIDO|COMISIONES COBRADAS|^\d{6}\.[A-Z0-9]+\.OD\./.test(text)) { inDetail = false; continue; }
 
       let rest = text;
       const d = text.match(/^(\d{2}) ([A-Z]{3})\b\s*(.*)$/);
