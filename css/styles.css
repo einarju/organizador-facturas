@@ -33,7 +33,7 @@ body {
   color: var(--ink);
   font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
-.wrap { max-width: 760px; margin: 0 auto; padding: 0 16px; }
+.wrap { max-width: 960px; margin: 0 auto; padding: 0 16px; }
 h1 { font-size: 1.9rem; margin: 0 0 4px; letter-spacing: -0.01em; }
 h2 { font-size: 1.15rem; margin: 0; }
 .muted { color: var(--muted); }
@@ -127,7 +127,7 @@ h2 { font-size: 1.15rem; margin: 0; }
 table.movs { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
 table.movs th { position: sticky; top: 0; background: var(--card); text-align: left; padding: 8px; border-bottom: 1px solid var(--line); font-weight: 600; z-index: 1; }
 table.movs td { padding: 6px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
-table.movs .num { text-align: right; }
+table.movs .amt { text-align: right; }
 table.movs .nowrap { white-space: nowrap; }
 table.movs td.deposito { color: var(--accent); font-weight: 600; }
 table.movs select, table.movs input, .docs select {

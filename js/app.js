@@ -138,7 +138,7 @@ function renderTable() {
       <td class="nowrap"></td>
       <td><select aria-label="Tipo"><option value="DC">DC</option><option value="TR">TR</option><option value="CH">CH</option></select></td>
       <td><input class="name" aria-label="Nombre corto"><div class="concept"></div></td>
-      <td class="num nowrap"></td>
+      <td class="amt nowrap"></td>
       <td><code class="folder"></code></td>`;
     tr.cells[0].textContent = m.fecha;
     const sel = tr.querySelector("select");
@@ -155,7 +155,7 @@ function renderTable() {
     tr.querySelector(".concept").textContent = m.concepto.slice(0, 90);
     tr.querySelector(".concept").title = m.concepto;
     tr.cells[3].textContent = (m.dir === "deposito" ? "+" : "−") + fmtMoney(m.importe);
-    tr.cells[3].className = `num nowrap ${m.dir}`;
+    tr.cells[3].className = `amt nowrap ${m.dir}`;
     body.appendChild(tr);
   });
   refreshNames();
